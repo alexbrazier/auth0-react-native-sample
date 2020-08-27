@@ -22,19 +22,24 @@ const auth0 = new Auth0(credentials);
 class App extends Component {
     constructor(props) {
         super(props);
-        this.state = { accessToken: null };
+        this.state = { accessToken: null, loading: false };
     }
 
     _onLogin = () => {
+        this.setState({loading: true});
         auth0.webAuth
             .authorize({
                 scope: 'openid profile email'
+            },
+            {
+                ephemeralSession: true,
             })
             .then(credentials => {
                 Alert.alert('AccessToken: ' + credentials.accessToken);
                 this.setState({ accessToken: credentials.accessToken });
             })
-            .catch(error => console.log(error));
+            .catch(error => console.log(error))
+            .then(() => this.setState({ loading: false }));
     };
 
     _onLogout = () => {
@@ -56,8 +61,9 @@ class App extends Component {
             <Text style = { styles.header }> Auth0Sample - Login </Text>
             <Text>
                 You are{ loggedIn ? ' ' : ' not ' }logged in . </Text>
-                <Button onPress = { loggedIn ? this._onLogout : this._onLogin }
-                title = { loggedIn ? 'Log Out' : 'Log In' }/>
+                {!this.state.loading && <Button onPress = { loggedIn ? this._onLogout : this._onLogin }
+                title = { loggedIn ? 'Log Out' : 'Log In' }/>}
+                {this.state.loading && <Text>Loading...</Text>}
         </View >
         );
     }
